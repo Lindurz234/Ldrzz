@@ -1,0 +1,6 @@
+git init
+git add .
+git commit -m "Initial commit: Splash Airdrop DApp"
+git branch -M main
+git remote add origin https://github.com/username/splash-airdrop.git
+git push -u origin main
