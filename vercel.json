@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/nextjs"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_INFURA_ID": "@infura_id",
+    "NEXT_PUBLIC_ALCHEMY_ID": "@alchemy_id"
+  }
+}
